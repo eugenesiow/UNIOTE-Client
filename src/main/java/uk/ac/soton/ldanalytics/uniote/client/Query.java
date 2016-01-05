@@ -12,7 +12,10 @@ public class Query {
 
         while (!Thread.currentThread ().isInterrupted ()) {
             //  Send message to broker
+        	publisher.sendMore("http://www.cwi.nl/SRBench/observations");
             publisher.send("blah blah", 0);
+            publisher.sendMore("http://www.cwi.nl/SRBench/sensors");
+            publisher.send("something else", 0);
             try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
