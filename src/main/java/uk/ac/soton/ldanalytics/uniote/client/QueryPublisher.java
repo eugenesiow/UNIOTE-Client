@@ -32,18 +32,21 @@ public class QueryPublisher {
         int queryId = 1;
         String queryStr = "PREFIX om-owl: <http://knoesis.wright.edu/ssw/ont/sensor-observation.owl#>\n" + 
         		"PREFIX weather: <http://knoesis.wright.edu/ssw/ont/weather.owl#>\n" + 
+        		"PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>\n" + 
         		"PREFIX owl-time: <http://www.w3.org/2006/time#>\n" + 
         		"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" + 
         		"\n" + 
-        		"SELECT DISTINCT ?sensor ?value ?uom\n" + 
+        		"SELECT DISTINCT ?sensor ?value ?lat ?lon\n" + 
         		"FROM NAMED STREAM <http://www.cwi.nl/SRBench/observations> [RANGE 1h STEP]\n" +
         		"FROM NAMED <http://www.cwi.nl/SRBench/sdsd>\n" +
         		"WHERE {\n" + 
-        		"  ?observation om-owl:procedure ?sensor ;\n" + 
+        		"  	?observation om-owl:procedure ?sensor ;\n" + 
         		"               a weather:RainfallObservation ;\n" + 
-        		"               om-owl:result ?result.\n" + 
-        		"  ?result om-owl:floatValue ?value ;\n" + 
-        		"          om-owl:uom ?uom .\n" + 
+        		"               om-owl:result ?result.\n"+
+        		"	?sensor om-owl:processLocation ?sensorLocation.	\n" +
+        		"	?sensorLocation wgs84_pos:lat ?lat;	\n" +
+        		"		wgs84_pos:long ?lon.	\n" +
+        		"  	?result om-owl:floatValue ?value .\n" + 
         		"}";
         
         Query query = StreamQueryFactory.create(queryStr);
@@ -60,20 +63,6 @@ public class QueryPublisher {
         		
         	}
         }                                                                   
-
-//        while (!Thread.currentThread ().isInterrupted ()) {
-//            //  Send message to broker
-//        	publisher.sendMore("http://www.cwi.nl/SRBench/observations");
-//        	publisher.sendMore(clientAddress);
-//            publisher.send("blah blah", 0);
-//            publisher.sendMore("http://www.cwi.nl/SRBench/sensors");
-//            publisher.send("something else", 0);
-//            try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//        }
 
         publisher.close ();
         context.term ();
