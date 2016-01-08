@@ -2,8 +2,8 @@ package uk.ac.soton.ldanalytics.uniote.client;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import org.apache.jena.query.Query;
 
+import org.apache.jena.query.Query;
 import org.zeromq.ZMQ;
 
 import uk.ac.soton.ldanalytics.sparql2stream.parser.StreamQueryFactory;
@@ -65,6 +65,17 @@ public class QueryPublisher {
         }                                                                   
 
         publisher.close ();
+        
+        ZMQ.Socket receiver = context.socket(ZMQ.PULL);
+        receiver.bind("tcp://"+clientAddress+":5700");
+        
+        while (!Thread.currentThread ().isInterrupted ()) {
+        	String qid = receiver.recvStr();
+            String result = receiver.recvStr();
+            System.out.println(result);
+        }
+        receiver.close();
+        
         context.term ();
 	}
 }
