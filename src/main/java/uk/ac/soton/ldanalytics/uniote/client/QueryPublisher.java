@@ -13,15 +13,17 @@ public class QueryPublisher {
 		//  Prepare our context and publisher
         ZMQ.Context context = ZMQ.context(1);
         
-        ZMQ.Socket publisher = context.socket(ZMQ.PUB);
-        publisher.connect("tcp://localhost:5500");
-        
         String clientAddress = "";
         try {
 			clientAddress = InetAddress.getLocalHost().getCanonicalHostName();
 		} catch (UnknownHostException e1) {
 			e1.printStackTrace();
 		}
+        
+        ZMQ.Socket publisher = context.socket(ZMQ.PUB);
+        publisher.connect("tcp://"+clientAddress+":5500");
+        
+//        System.out.println(clientAddress);
         
         try {
 			Thread.sleep(1000);
@@ -38,7 +40,7 @@ public class QueryPublisher {
         		"\n" + 
         		"SELECT DISTINCT ?sensor ?value ?lat ?lon\n" + 
         		"FROM NAMED STREAM <http://www.cwi.nl/SRBench/observations> [RANGE 1h STEP]\n" +
-        		"FROM NAMED <http://www.cwi.nl/SRBench/sdsd>\n" +
+//        		"FROM NAMED <http://www.cwi.nl/SRBench/sdsd>\n" +
         		"WHERE {\n" + 
         		"  	?observation om-owl:procedure ?sensor ;\n" + 
         		"               a weather:RainfallObservation ;\n" + 
@@ -69,12 +71,17 @@ public class QueryPublisher {
         ZMQ.Socket receiver = context.socket(ZMQ.PULL);
         receiver.bind("tcp://"+clientAddress+":5700");
         
+        ZMQ.Socket sender = context.socket(ZMQ.PUSH);
+        sender.bind("tcp://"+clientAddress+":6000");
+        
         while (!Thread.currentThread ().isInterrupted ()) {
         	String qid = receiver.recvStr();
             String result = receiver.recvStr();
             System.out.println(result);
+			sender.send(result.toString());
         }
         receiver.close();
+        sender.close();
         
         context.term ();
 	}
